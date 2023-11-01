@@ -1,3 +1,10 @@
+vlc (3.0.20-0+deb11u1) bullseye-security; urgency=medium
+
+  * New upstream version 3.0.19
+    - Fix potential security issue (OOB Write) on MMS://
+
+ -- Sebastian Ramacher <sramacher@debian.org>  Thu, 02 Nov 2023 00:13:56 +0100
+
 vlc (3.0.18-0+deb11u1) bullseye-security; urgency=medium
 
   * New upstream version 3.0.18
