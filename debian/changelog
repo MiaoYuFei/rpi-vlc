@@ -1,48 +1,8 @@
-vlc (1:3.0.18-0+rpt7+deb11u1) bullseye; urgency=medium
+vlc (1:3.0.20-0+rpt1+deb11u1) bullseye; urgency=medium
 
   * Update to HW acceleration patch 37
   * Install libwl_dmabuf_plugin.so
-
- -- Serge Schneider <serge@raspberrypi.com>  Mon, 14 Aug 2023 02:00:35 +0000
-
-vlc (1:3.0.18-0+rpt6+deb11u1) bullseye; urgency=medium
-
-  * Update to HW acceleration patch 36
-
- -- Serge Schneider <serge@raspberrypi.com>  Mon, 07 Aug 2023 12:59:12 +0000
-
-vlc (1:3.0.18-0+rpt5+deb11u1) bullseye; urgency=medium
-
-  * Update to HW acceleration patch 35
-    - Fixes firmware accelerated playback of some AVI files with missing PTSs
-    - Downgrades the xsplitter errors about failure to initialise mmal to
-      debug (used to be unexpected - now normal)
-    - Disable privacy prompt on first run - does not work correctly with Wayland
-
- -- Serge Schneider <serge@raspberrypi.com>  Mon, 17 Jul 2023 09:06:03 +0100
-
-vlc (1:3.0.18-0+rpt4+deb11u1) bullseye; urgency=medium
-
-  * Update to HW acceleration patch 33
   * Bump epoch
-
- -- Serge Schneider <serge@raspberrypi.com>  Thu, 11 May 2023 08:00:17 +0100
-
-vlc (3.0.18-0+rpt3+deb11u1) bullseye; urgency=medium
-
-  * Update to MMAL patch 32
-
- -- Serge Schneider <serge@raspberrypi.com>  Tue, 28 Mar 2023 17:09:43 +0100
-
-vlc (3.0.18-0+rpt2+deb11u1) bullseye; urgency=medium
-
-  * Update to MMAL patch 31
-
- -- Serge Schneider <serge@raspberrypi.com>  Tue, 17 Jan 2023 10:18:50 +0000
-
-vlc (3.0.18-0+rpt1+deb11u1) bullseye; urgency=medium
-
-  * Update to MMAL patch 30
   * Disable libva and vdpau on ARM
   * Disable mmal-avcodec
   * Add new dependencies
@@ -61,7 +21,14 @@ vlc (3.0.18-0+rpt1+deb11u1) bullseye; urgency=medium
   [changes brought forward from 3.0.11.1-1+rpi1 by Peter Michael Green <plugwash@raspbian.org> at Sun, 30 Aug 2020 00:37:35 +0000]
   * Partially fix clean target.
 
- -- Serge Schneider <serge@raspberrypi.com>  Wed, 07 Dec 2022 14:37:09 +0000
+ -- Serge Schneider <serge@raspberrypi.com>  Tue, 07 Nov 2023 10:02:42 +0000
+
+vlc (3.0.20-0+deb11u1) bullseye-security; urgency=medium
+
+  * New upstream version 3.0.19
+    - Fix potential security issue (OOB Write) on MMS://
+
+ -- Sebastian Ramacher <sramacher@debian.org>  Thu, 02 Nov 2023 00:13:56 +0100
 
 vlc (3.0.18-0+deb11u1) bullseye-security; urgency=medium
 
