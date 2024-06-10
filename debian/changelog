@@ -1,3 +1,10 @@
+vlc (3.0.21-0+deb12u1) bookworm-security; urgency=medium
+
+  * New upstream version 3.0.21
+    - Fix security integer overflow in MMS module
+
+ -- Sebastian Ramacher <sramacher@debian.org>  Mon, 10 Jun 2024 22:58:19 +0200
+
 vlc (3.0.20-0+deb12u1) bookworm-security; urgency=medium
 
   * New upstream version 3.0.20
