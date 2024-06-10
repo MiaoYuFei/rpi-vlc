@@ -1,3 +1,10 @@
+vlc (3.0.21-0+deb11u1) bullseye-security; urgency=medium
+
+  * New upstream version 3.0.21
+    - Fix security integer overflow in MMS module
+
+ -- Sebastian Ramacher <sramacher@debian.org>  Mon, 10 Jun 2024 23:20:04 +0200
+
 vlc (3.0.20-0+deb11u1) bullseye-security; urgency=medium
 
   * New upstream version 3.0.19
