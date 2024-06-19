@@ -1,6 +1,6 @@
-vlc (1:3.0.21-0+rpt1+deb12u1) UNRELEASED; urgency=medium
+vlc (1:3.0.21-0+rpt1+deb12u1) bookworm; urgency=medium
 
-  * HW accel patch 45
+  * HW accel patch 46
   * Install libwl_dmabuf_plugin.so
   * Disable privacy prompt on first run - does not work correctly with Wayland
   * Bump epoch
