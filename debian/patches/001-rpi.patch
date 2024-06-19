@@ -1,6 +1,6 @@
 --- a/configure.ac
 +++ b/configure.ac
-@@ -3085,6 +3085,21 @@ dnl OpenGL ES 2: depends on EGL 1.1
+@@ -3110,6 +3110,21 @@ dnl OpenGL ES 2: depends on EGL 1.1
  PKG_ENABLE_MODULES_VLC([GLES2], [], [glesv2], [OpenGL ES v2 support], [disabled])
  
  dnl
@@ -22,7 +22,7 @@
  dnl  Xlib
  dnl
  
-@@ -3183,6 +3198,7 @@ AC_ARG_ENABLE(wayland,
+@@ -3208,6 +3223,7 @@ AC_ARG_ENABLE(wayland,
    [AS_HELP_STRING([--enable-wayland], [Incomplete Wayland support (default disabled)])])
  have_wayland="no"
  have_wayland_egl="no"
@@ -30,7 +30,7 @@
  
  AS_IF([test "${enable_wayland}" = "yes"], [
    PKG_CHECK_MODULES([WAYLAND_CLIENT], [wayland-client >= 1.5.91], [
-@@ -3190,6 +3206,13 @@ AS_IF([test "${enable_wayland}" = "yes"]
+@@ -3215,6 +3231,13 @@ AS_IF([test "${enable_wayland}" = "yes"]
      PKG_CHECK_EXISTS([wayland-protocols >= 1.4], [
        WAYLAND_PROTOCOLS="$(${PKG_CONFIG} wayland-protocols --variable pkgdatadir)"
        AC_MSG_RESULT([${WAYLAND_PROTOCOLS}])
@@ -44,7 +44,7 @@
      ], [
        AC_MSG_RESULT([not found])
        AC_MSG_ERROR([$(${PKG_CONFIG} --print-errors 'wayland-protocols >= 1.4')])
-@@ -3223,6 +3246,7 @@ AC_SUBST([WAYLAND_PROTOCOLS])
+@@ -3248,6 +3271,7 @@ AC_SUBST([WAYLAND_PROTOCOLS])
  AC_SUBST([WAYLAND_SCANNER])
  AM_CONDITIONAL([HAVE_WAYLAND], [test "${have_wayland}" = "yes"])
  AM_CONDITIONAL([HAVE_WAYLAND_EGL], [test "${have_wayland_egl}" = "yes"])
@@ -52,7 +52,7 @@
  
  
  dnl
-@@ -3448,20 +3472,24 @@ AM_CONDITIONAL([HAVE_KVA], [test "${have
+@@ -3474,20 +3498,24 @@ AM_CONDITIONAL([HAVE_KVA], [test "${have
  dnl
  dnl MMAL plugin
  dnl
@@ -80,7 +80,7 @@
            AS_IF([test "${enable_mmal}" = "yes"],
              [ AC_MSG_ERROR([Cannot find bcm library...]) ],
              [ AC_MSG_WARN([Cannot find bcm library...]) ])
-@@ -3473,6 +3501,7 @@ if test "${enable_mmal}" != "no"; then
+@@ -3499,6 +3527,7 @@ if test "${enable_mmal}" != "no"; then
    VLC_RESTORE_FLAGS
  fi
  AM_CONDITIONAL([HAVE_MMAL], [test "${have_mmal}" = "yes"])
@@ -632,7 +632,7 @@
  if ENABLE_SOUT
 --- a/modules/codec/avcodec/avcodec.c
 +++ b/modules/codec/avcodec/avcodec.c
-@@ -252,28 +252,51 @@ vlc_module_begin ()
+@@ -252,17 +252,41 @@ vlc_module_begin ()
  #endif
  vlc_module_end ()
  
@@ -664,33 +664,33 @@
 +
 +    // If named decoder do not attempt hw override - wait for non-hw pass
 +    if( hw != 0 && psz_decoder != NULL )
-+        return NULL;
++        goto fail_free_psz_decoder;
  
      /* *** determine codec type *** */
      if( !GetFfmpegCodec( p_dec->fmt_in.i_cat, p_dec->fmt_in.i_codec,
                           &i_codec_id, &psz_namecodec ) )
-          return NULL;
- 
-+    if( hw != 0 && (hw_dec_name = hw_v4l2m2m_dec_str(i_codec_id)) == NULL )
-+        return NULL;
+-         return NULL;
++        goto fail_free_psz_decoder;
 +
++    if( hw != 0 && (hw_dec_name = hw_v4l2m2m_dec_str(i_codec_id)) == NULL )
++        goto fail_free_psz_decoder;
+ 
      msg_Dbg( p_dec, "using %s %s", AVPROVIDER(LIBAVCODEC), LIBAVCODEC_IDENT );
  
-     /* Initialization must be done before avcodec_find_decoder() */
+@@ -270,7 +294,6 @@ AVCodecContext *ffmpeg_AllocContext( dec
      vlc_init_avcodec(VLC_OBJECT(p_dec));
  
      /* *** ask ffmpeg for a decoder *** */
 -    char *psz_decoder = var_InheritString( p_dec, "avcodec-codec" );
      if( psz_decoder != NULL )
      {
--        p_codec = avcodec_find_decoder_by_name( psz_decoder );
-+        p_codec = avcodec_find_decoder_by_name(psz_decoder);
-         if( !p_codec )
-             msg_Err( p_dec, "Decoder `%s' not found", psz_decoder );
-         else if( p_codec->id != i_codec_id )
-@@ -284,7 +307,9 @@ AVCodecContext *ffmpeg_AllocContext( dec
+         p_codec = avcodec_find_decoder_by_name( psz_decoder );
+@@ -282,9 +305,11 @@ AVCodecContext *ffmpeg_AllocContext( dec
+                     psz_decoder, (char*)&p_dec->fmt_in.i_codec );
+             p_codec = NULL;
          }
-         free( psz_decoder );
+-        free( psz_decoder );
++        free( (char*)psz_decoder );
      }
 -    if( !p_codec )
 +    if( hw_dec_name != NULL )
@@ -699,19 +699,23 @@
          p_codec = avcodec_find_decoder( i_codec_id );
      if( !p_codec )
      {
-@@ -304,6 +329,12 @@ AVCodecContext *ffmpeg_AllocContext( dec
+@@ -302,6 +327,16 @@ AVCodecContext *ffmpeg_AllocContext( dec
+     avctx->debug = var_InheritInteger( p_dec, "avcodec-debug" );
+     avctx->opaque = p_dec;
      return avctx;
- }
- 
++
++fail_free_psz_decoder:
++    free((char*)psz_decoder);
++    return NULL;
++}
++
 +AVCodecContext *ffmpeg_AllocContext( decoder_t *p_dec,
 +                                     const AVCodec **restrict codecp )
 +{
 +    return ffmpeg_AllocContextHw(p_dec, codecp, 0);
-+}
-+
+ }
+ 
  /*****************************************************************************
-  * ffmpeg_OpenCodec:
-  *****************************************************************************/
 --- a/modules/codec/avcodec/avcodec.h
 +++ b/modules/codec/avcodec/avcodec.h
 @@ -48,6 +48,7 @@ int InitSubtitleDec( vlc_object_t * );
@@ -722,6 +726,19 @@
  AVCodecContext *ffmpeg_AllocContext( decoder_t *, const AVCodec ** );
  int ffmpeg_OpenCodec( decoder_t *p_dec, AVCodecContext *, const AVCodec * );
  
+--- a/modules/codec/avcodec/avcommon.h
++++ b/modules/codec/avcodec/avcommon.h
+@@ -84,7 +84,10 @@ static inline void vlc_init_avutil(vlc_o
+             break;
+         case VLC_MSG_DBG+1:
+             level = AV_LOG_DEBUG;
++            break;
+         default:
++            if (verbose + VLC_MSG_ERR >= VLC_MSG_DBG+2)
++                level = AV_LOG_TRACE;
+             break;
+         }
+     }
 --- /dev/null
 +++ b/modules/codec/avcodec/drm_pic.c
 @@ -0,0 +1,62 @@
@@ -1238,8 +1255,8 @@
 +        {
 +            do_disable = true;
 +            msg_Warn(p_intf, "devicePixelRatio (%g) > 2.1: assuming broken", dpr);
-+            app.quit();
 +        }
++        app.quit();
 +    }
 +    if( do_disable )
 +    {
@@ -26437,7 +26454,7 @@
 +
 --- /dev/null
 +++ b/modules/video_output/drmu/pollqueue.c
-@@ -0,0 +1,527 @@
+@@ -0,0 +1,545 @@
 +#include "pollqueue.h"
 +
 +#include <assert.h>
@@ -26499,6 +26516,9 @@
 +        void (*post)(void *v, short revents);
 +        void *v;
 +    } prepost;
++
++    void (* exit_fn)(void * v);
++    void * exit_v;
 +
 +    bool kill;
 +    bool join_req;  // On thread exit do not detach
@@ -26820,13 +26840,21 @@
 +    pthread_mutex_unlock(&pq->lock);
 +fail_unlocked:
 +
-+    polltask_free(pq->prod_pt);
-+    pthread_cond_destroy(&pq->cond);
-+    pthread_mutex_destroy(&pq->lock);
-+    close(pq->prod_fd);
-+    if (!pq->join_req)
-+        pthread_detach(pthread_self());
-+    free(pq);
++    {
++        void (*const exit_fn)(void *v) = pq->exit_fn;
++        void * const exit_v = pq->exit_v;
++
++        polltask_free(pq->prod_pt);
++        pthread_cond_destroy(&pq->cond);
++        pthread_mutex_destroy(&pq->lock);
++        close(pq->prod_fd);
++        if (!pq->join_req)
++            pthread_detach(pthread_self());
++        free(pq);
++
++        if (exit_fn)
++            exit_fn(exit_v);
++    }
 +
 +    return NULL;
 +}
@@ -26965,9 +26993,16 @@
 +    pthread_mutex_unlock(&pq->lock);
 +}
 +
++void pollqueue_set_exit(struct pollqueue *const pq,
++                        void (* const exit_fn)(void * v), void * v)
++{
++    pq->exit_fn = exit_fn;
++    pq->exit_v = v;
++}
++
 --- /dev/null
 +++ b/modules/video_output/drmu/pollqueue.h
-@@ -0,0 +1,83 @@
+@@ -0,0 +1,87 @@
 +#ifndef POLLQUEUE_H_
 +#define POLLQUEUE_H_
 +
@@ -27049,6 +27084,10 @@
 +                            void (*fn_pre)(void *v, struct pollfd *pfd),
 +                            void (*fn_post)(void *v, short revents),
 +                            void *v);
++
++// Set callback to execture on the poll thread when it exits
++void pollqueue_set_exit(struct pollqueue *const pq,
++                        void (* const exit_fn)(void * v), void * v);
 +
 +#endif /* POLLQUEUE_H_ */
 --- a/modules/video_output/opengl/display.c
@@ -31041,22 +31080,18 @@
  static void aout_DecSynchronize (audio_output_t *aout, vlc_tick_t dec_pts,
 --- a/src/input/decoder.c
 +++ b/src/input/decoder.c
-@@ -2000,6 +2000,7 @@ void input_DecoderDelete( decoder_t *p_d
-     vlc_mutex_lock( &p_owner->lock );
+@@ -2001,6 +2001,11 @@ void input_DecoderDelete( decoder_t *p_d
      p_owner->b_waiting = false;
      vlc_cond_signal( &p_owner->wait_request );
-+    vlc_mutex_unlock( &p_owner->lock );
  
++    /* RPI: V4L2 stateful (H265) can deadlock on buffer starvation if output
++     * buffers not returned */
++    if( p_owner->p_vout != NULL )
++        vout_Flush(p_owner->p_vout, 0);
++
      /* If the video output is paused or slow, or if the picture pool size was
       * under-estimated (e.g. greedy video filter, buggy decoder...), the
-@@ -2010,7 +2011,6 @@ void input_DecoderDelete( decoder_t *p_d
-      * worker threads (if any) and the decoder thread to terminate. */
-     if( p_owner->p_vout != NULL )
-         vout_Cancel( p_owner->p_vout, true );
--    vlc_mutex_unlock( &p_owner->lock );
- 
-     vlc_join( p_owner->thread, NULL );
- 
+      * the picture pool may be empty, and the decoder thread or any decoder
 --- a/src/misc/fourcc.c
 +++ b/src/misc/fourcc.c
 @@ -416,6 +416,10 @@ static const vlc_fourcc_t p_D3D11_OPAQUE
