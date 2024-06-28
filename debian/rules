@@ -111,6 +111,7 @@ confflags += \
 # opencv: developer plugin not required by end users
 # projectm: broken
 # schroedinger: removed from Debian (#845037)
+# sndio: NMU maintained key package
 # sparkle: MacOS X only
 # telx: incompatible with zvbi
 # vpx: not needed when having libavcodec
@@ -138,6 +139,7 @@ confflags += \
 	--disable-opencv \
 	--disable-projectm \
 	--disable-schroedinger \
+	--disable-sndio \
 	--disable-sparkle \
 	--disable-telx \
 	--disable-vpx \
