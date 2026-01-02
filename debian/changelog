@@ -1,3 +1,9 @@
+vlc (1:3.0.22-0+deb13u1+rpt1+resolute1) resolute; urgency=medium
+
+  * New upstream version 3.0.22 for ubuntu/resolute
+
+ -- Yufei Miao <miao1381106@gmail.com>  Mon, 22 Dec 2025 09:10:58 +0000
+
 vlc (1:3.0.22-0+deb13u1+rpt1) trixie; urgency=medium
 
   * Update gbp.conf for pios/trixie branch

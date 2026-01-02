@@ -9170,7 +9170,7 @@ Can do HDR setup and mode matching
 +{
 +    drmu_queue_t * const aq = calloc(1, sizeof(*aq));
 +    pthread_condattr_t condattr;
-+    static atomic_int qcount = ATOMIC_VAR_INIT(0);
++    static atomic_int qcount = 0;
 +
 +    if (aq == NULL)
 +        return NULL;
@@ -12101,7 +12101,7 @@ Can do HDR setup and mode matching
 +    if (!pq)
 +        return NULL;
 +    *pq = (struct pollqueue){
-+        .ref_count = ATOMIC_VAR_INIT(0),
++        .ref_count = 0,
 +        .lock = PTHREAD_MUTEX_INITIALIZER,
 +        .cond = PTHREAD_COND_INITIALIZER,
 +        .head = NULL,
