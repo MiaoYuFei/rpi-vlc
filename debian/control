@@ -1,7 +1,8 @@
 Source: vlc
 Section: video
 Priority: optional
-Maintainer: Debian Multimedia Maintainers <debian-multimedia@lists.debian.org>
+Maintainer: Yufei Miao <miao1381106@gmail.com>
+XSBC-Original-Maintainer: Debian Multimedia Maintainers <debian-multimedia@lists.debian.org>
 Uploaders: Loic Minier <lool@dooz.org>,
            Christophe Mutricy <xtophe@videolan.org>,
            Mohammed Adnène Trojette <adn+deb@diwi.org>,
@@ -55,7 +56,6 @@ Build-Depends: autopoint,
                libjack-jackd2-dev | libjack-dev,
                libkate-dev (>= 0.3.0),
                liblirc-dev,
-               liblivemedia-dev,
                liblua5.2-dev,
                libmad0-dev,
                libmatroska-dev (>= 1.0.0),
@@ -70,7 +70,6 @@ Build-Depends: autopoint,
                libomxil-bellagio-dev [armhf arm64],
                libopenmpt-modplug-dev (>= 0.8.9) | libmodplug-dev (>= 1:0.8.9),
                libopus-dev (>= 1.0.3),
-               libplacebo-dev (>= 0.2.1) [linux-any],
                libpng-dev,
                libpostproc-dev (>= 7:3.0),
                libprotobuf-dev (>= 2.5.0),

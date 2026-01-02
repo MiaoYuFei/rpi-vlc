@@ -56,7 +56,6 @@ confflags += \
 	--enable-libmpeg2 \
 	--enable-libxml2 \
 	--enable-lirc \
-	--enable-live555 \
 	--enable-mad \
 	--enable-matroska \
 	--enable-mod \
@@ -161,7 +160,7 @@ confflags += \
 	--enable-alsa \
 	--enable-dc1394 \
 	--enable-dv1394 \
-	--enable-libplacebo \
+	--disable-libplacebo \
 	--enable-linsys \
 	--enable-nfs \
 	--enable-udev \
