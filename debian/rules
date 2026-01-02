@@ -53,7 +53,6 @@ confflags += \
 	--enable-libass \
 	--enable-libxml2 \
 	--enable-lirc \
-	--enable-live555 \
 	--enable-mad \
 	--enable-matroska \
 	--enable-mod \
