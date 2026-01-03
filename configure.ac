@@ -113,6 +113,7 @@ case "${host_os}" in
     ;;
   linux*)
     SYS=linux
+    test "${host_cpu}" = "riscv64" && CFLAGS="${CFLAGS} -pthread"
     ;;
   bsdi*)
     SYS=bsdi
@@ -3173,6 +3174,21 @@ dnl OpenGL ES 2: depends on EGL 1.1
 PKG_ENABLE_MODULES_VLC([GLES2], [], [glesv2], [OpenGL ES v2 support], [disabled])
 
 dnl
+dnl DRM
+dnl
+AC_ARG_ENABLE(drm,
+  [  --enable-drm            DRM output support (default enabled)],, [
+    enable_drm="yes"
+])
+
+have_drm="no"
+AS_IF([test "${enable_drm}" != "no"], [
+  PKG_CHECK_MODULES(DRM, [libdrm])
+  have_drm="yes"
+])
+AM_CONDITIONAL([HAVE_DRM], [test "${have_drm}" = "yes"])
+
+dnl
 dnl  Xlib
 dnl
 
@@ -3271,6 +3287,11 @@ AC_ARG_ENABLE(wayland,
   [AS_HELP_STRING([--enable-wayland], [Incomplete Wayland support (default disabled)])])
 have_wayland="no"
 have_wayland_egl="no"
+have_wayland_single_pixel_buffer="no"
+have_wayland_cursor_shape="no"
+dnl This controls building wl_xdg_shell and isn't a simple xdg-shell exists
+dnl Pkg 1.20 is what exists in bullseye
+have_wayland_xdg_shell="no"
 
 AS_IF([test "${enable_wayland}" = "yes"], [
   PKG_CHECK_MODULES([WAYLAND_CLIENT], [wayland-client >= 1.5.91], [
@@ -3278,6 +3299,25 @@ AS_IF([test "${enable_wayland}" = "yes"], [
     PKG_CHECK_EXISTS([wayland-protocols >= 1.4], [
       WAYLAND_PROTOCOLS="$(${PKG_CONFIG} wayland-protocols --variable pkgdatadir)"
       AC_MSG_RESULT([${WAYLAND_PROTOCOLS}])
+      AC_MSG_CHECKING([for Wayland protocols single pixel buffer])
+      PKG_CHECK_EXISTS([wayland-protocols >= 1.26], [
+         AC_MSG_RESULT([yes])
+         have_wayland_single_pixel_buffer="yes"
+      ], [
+         AC_MSG_RESULT([no])
+      ])
+      PKG_CHECK_EXISTS([wayland-protocols >= 1.20], [
+         AC_MSG_RESULT([yes])
+         have_wayland_xdg_shell="yes"
+      ], [
+         AC_MSG_RESULT([no])
+      ])
+      PKG_CHECK_EXISTS([wayland-protocols >= 1.32], [
+         AC_MSG_RESULT([yes])
+         have_wayland_cursor_shape="yes"
+      ], [
+         AC_MSG_RESULT([no])
+      ])
     ], [
       AC_MSG_RESULT([not found])
       AC_MSG_ERROR([$(${PKG_CONFIG} --print-errors 'wayland-protocols >= 1.4')])
@@ -3311,6 +3351,9 @@ AC_SUBST([WAYLAND_PROTOCOLS])
 AC_SUBST([WAYLAND_SCANNER])
 AM_CONDITIONAL([HAVE_WAYLAND], [test "${have_wayland}" = "yes"])
 AM_CONDITIONAL([HAVE_WAYLAND_EGL], [test "${have_wayland_egl}" = "yes"])
+AM_CONDITIONAL([HAVE_WAYLAND_SINGLE_PIXEL_BUFFER], [test "${have_wayland_single_pixel_buffer}" = "yes"])
+AM_CONDITIONAL([HAVE_WAYLAND_CURSOR_SHAPE], [test "${have_wayland_cursor_shape}" = "yes"])
+AM_CONDITIONAL([HAVE_WAYLAND_XDG_SHELL], [test "${have_wayland_xdg_shell}" = "yes"])
 
 
 dnl
@@ -3556,20 +3599,24 @@ AM_CONDITIONAL([HAVE_KVA], [test "${have_kva}" = "yes"])
 dnl
 dnl MMAL plugin
 dnl
+have_mmal="no"
 AC_ARG_ENABLE(mmal,
   AS_HELP_STRING([--enable-mmal],
     [Multi-Media Abstraction Layer (MMAL) hardware plugin (default enable)]))
+AC_ARG_ENABLE(mmal_avcodec,
+  AS_HELP_STRING([--enable-mmal-avcodec],
+    [Use MMAL enabled avcodec libs (default disable)]))
 if test "${enable_mmal}" != "no"; then
   VLC_SAVE_FLAGS
   LDFLAGS="${LDFLAGS} -L/opt/vc/lib -lvchostif"
-  CPPFLAGS="${CPPFLAGS} -isystem /opt/vc/include -isystem /opt/vc/include/interface/vcos/pthreads -isystem /opt/vc/include/interface/vmcs_host/linux"
+  CPPFLAGS="${CPPFLAGS} -idirafter /opt/vc/include -isystem /opt/vc/include/interface/vcos/pthreads -isystem /opt/vc/include/interface/vmcs_host/linux"
   AC_CHECK_HEADERS(interface/mmal/mmal.h,
     [ AC_CHECK_LIB(bcm_host, vc_tv_unregister_callback_full, [
         have_mmal="yes"
         VLC_ADD_PLUGIN([mmal])
         VLC_ADD_LDFLAGS([mmal],[ -L/opt/vc/lib ])
-        VLC_ADD_CFLAGS([mmal],[ -isystem /opt/vc/include -isystem /opt/vc/include/interface/vcos/pthreads -isystem /opt/vc/include/interface/vmcs_host/linux ])
-        VLC_ADD_LIBS([mmal],[ -lbcm_host -lmmal -lmmal_core -lmmal_components -lmmal_util -lvchostif ]) ], [
+        VLC_ADD_CFLAGS([mmal],[ -idirafter /opt/vc/include -isystem /opt/vc/include/interface/vcos/pthreads -isystem /opt/vc/include/interface/vmcs_host/linux ])
+        VLC_ADD_LIBS([mmal],[ -lbcm_host -lmmal -lmmal_core -lmmal_components -lmmal_util -lvchostif -lvchiq_arm -lvcsm ]) ], [
           AS_IF([test "${enable_mmal}" = "yes"],
             [ AC_MSG_ERROR([Cannot find bcm library...]) ],
             [ AC_MSG_WARN([Cannot find bcm library...]) ])
@@ -3581,6 +3628,7 @@ if test "${enable_mmal}" != "no"; then
   VLC_RESTORE_FLAGS
 fi
 AM_CONDITIONAL([HAVE_MMAL], [test "${have_mmal}" = "yes"])
+AM_CONDITIONAL([HAVE_MMAL_AVCODEC], [test "${enable_mmal_avcodec}" = "yes"])
 
 dnl
 dnl evas plugin

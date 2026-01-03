@@ -11,9 +11,7 @@ EXTRA_SUBDIRS = \
 
 SUBDIRS = .
 DIST_SUBDIRS = . $(EXTRA_SUBDIRS)
-if HAVE_MMAL
 SUBDIRS += hw/mmal
-endif
 
 TESTS =
 
@@ -35,6 +33,7 @@ include demux/Makefile.am
 include gui/Makefile.am
 include hw/d3d9/Makefile.am
 include hw/d3d11/Makefile.am
+include hw/drm/Makefile.am
 include hw/vaapi/Makefile.am
 include hw/vdpau/Makefile.am
 include keystore/Makefile.am

@@ -124,14 +124,6 @@ vlc_cache_gen_LDFLAGS = -Wc,-static
 vlc_cache_gen_DEPENDENCIES = vlc_win32_rc.$(OBJEXT)
 endif
 
-#
-# Plug-ins cache
-#
-if HAVE_DYNAMIC_PLUGINS
-noinst_DATA = ../modules/plugins.dat
-endif
-MOSTLYCLEANFILES = $(noinst_DATA)
-
 if HAVE_OSX
 if BUILD_VLC
 install-data-local:
@@ -139,13 +131,3 @@ install-data-local:
 
 endif
 endif
-
-.PHONY: ../modules/plugins.dat
-
-../modules/plugins.dat: vlc-cache-gen$(EXEEXT)
-	$(AM_V_at)rm -f ../modules/plugins.dat
-	$(AM_V_GEN)if test "$(build)" = "$(host)"; then \
-		./vlc-cache-gen$(EXEEXT) `realpath ../modules` ; \
-	else \
-		echo "Cross-compilation: cache generation skipped!" ; \
-	fi

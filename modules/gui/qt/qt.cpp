@@ -31,6 +31,7 @@
 #include <QApplication>
 #include <QDate>
 #include <QMutex>
+#include <QScreen>
 
 #include "qt.hpp"
 
@@ -289,7 +290,7 @@ vlc_module_begin ()
     add_string( "qt-slider-colours", "153;210;153;20;210;20;255;199;15;245;39;29",
                 SLIDERCOL_TEXT, SLIDERCOL_LONGTEXT, false )
 
-    add_bool( "qt-privacy-ask", true, PRIVACY_TEXT, PRIVACY_TEXT,
+    add_bool( "qt-privacy-ask", false, PRIVACY_TEXT, PRIVACY_TEXT,
               false )
         change_private ()
 
@@ -587,6 +588,22 @@ static void *ThreadPlatform( void *obj, char *platform_name )
 #if HAS_QT57
     QApplication::setAttribute( Qt::AA_UseStyleSheetPropagationInWidgetStyles, true);
 #endif
+
+    bool do_disable = false;
+    {
+        QVLCApp app( argc, argv );
+        const double dpr = app.devicePixelRatio();
+        if( dpr > 2.1 )
+        {
+            do_disable = true;
+            msg_Warn(p_intf, "devicePixelRatio (%g) > 2.1: assuming broken", dpr);
+        }
+        app.quit();
+    }
+    if( do_disable )
+    {
+        QApplication::setAttribute( Qt::AA_DisableHighDpiScaling );
+    }
 
     /* Start the QApplication here */
     QVLCApp app( argc, argv );
